@@ -1,1 +1,281 @@
-hi there
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Health Pathways Visualization</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+  background: #000;
+  margin: 0;
+  overflow: hidden;
+}
+
+.links line {
+  stroke: #666;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  stroke: #222;
+  stroke-width: 1.5px;
+}
+
+text {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  fill: white;
+  pointer-events: none;
+}
+
+.title-box {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: rgba(40, 40, 40, 0.9);
+  border: 1px solid #666;
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 101;
+}
+
+.title-box h2 {
+  margin: 0 0 8px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+}
+
+.title-box p {
+  margin: 0;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  opacity: 0.8;
+}
+
+.legend {
+  font-family: 'Inter', sans-serif;
+  padding: 10px;
+  position: absolute;
+  left: 20px;
+  top: 120px;
+  background: rgba(40, 40, 40, 0.9);
+  border: 1px solid #666;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.legend div {
+  margin: 4px 0;
+}
+</style>
+</head>
+<body>
+<div class="title-box">
+  <h2>giro</h2>
+  <p>infrastructure of death</p>
+</div>
+
+<div class="legend">
+  <div><span style="color:#ff4444">■</span> Poor Pathway</div>
+  <div><span style="color:#4444ff">■</span> Rich Pathway</div>
+  <div><span style="color:#004d00">■</span> Public Hospital</div>
+  <div><span style="color:#00ff00">■</span> Private Hospital</div>
+  <div><span style="color:#ffd700">■</span> Temple</div>
+  <div><span style="color:#ff9900">■</span> Cremation</div>
+  <div><span style="color:#00cc00">■</span> Alive</div>
+  <div><span style="color:#a0522d">■</span> Marble Vault</div>
+</div>
+
+<svg width="1200" height="800"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+function calculateDegrees(data) {
+  const degreeMap = new Map();
+  data.nodes.forEach(node => degreeMap.set(node.id, 0));
+  
+  data.links.forEach(link => {
+    degreeMap.set(link.source, degreeMap.get(link.source) + 1);
+    degreeMap.set(link.target, degreeMap.get(link.target) + 1);
+  });
+  
+  return degreeMap;
+}
+
+var color = d3.scaleOrdinal()
+  .range(["#ff4444", "#4444ff", "#004d00", "#00ff00", 
+          "#ffd700", "#ff9900", "#00cc00", "#a0522d"]);
+
+var data = {
+  "nodes": [
+    {"id": "Poor", "type": "root", "group": 0},
+    {"id": "Rich", "type": "root", "group": 1},
+    {"id": "Motorbike Crash", "type": "event", "group": 0},
+    {"id": "Flooded Home", "type": "event", "group": 0},
+    {"id": "Polluted Well", "type": "event", "group": 0},
+    {"id": "Starving Body", "type": "event", "group": 0},
+    {"id": "Suicide Attempt", "type": "event", "group": 0},
+    {"id": "Por Tek Tung Rescue", "type": "service", "group": 0},
+    {"id": "Street Clinic", "type": "service", "group": 0},
+    {"id": "Luxury Collision", "type": "event", "group": 1},
+    {"id": "Health Scare", "type": "event", "group": 1},
+    {"id": "Condo Escape", "type": "event", "group": 1},
+    {"id": "Private Breakdown", "type": "event", "group": 1},
+    {"id": "Private Ambulance", "type": "service", "group": 1},
+    {"id": "Bottled Water", "type": "service", "group": 1},
+    {"id": "VIP Sushi", "type": "service", "group": 1},
+    {"id": "Public Hospital", "type": "hospital", "group": 2},
+    {"id": "VIP Hospital", "type": "hospital", "group": 3},
+    {"id": "Poor Temple", "type": "temple", "group": 4},
+    {"id": "Rich Temple", "type": "temple", "group": 4},
+    {"id": "Cremation", "type": "end", "group": 5},
+    {"id": "Alive", "type": "end", "group": 6},
+    {"id": "Marble Vault", "type": "end", "group": 7}
+  ],
+  "links": [
+    {"source": "Poor", "target": "Motorbike Crash"},
+    {"source": "Poor", "target": "Flooded Home"},
+    {"source": "Poor", "target": "Polluted Well"},
+    {"source": "Poor", "target": "Starving Body"},
+    {"source": "Poor", "target": "Suicide Attempt"},
+    {"source": "Poor", "target": "Por Tek Tung Rescue"},
+    {"source": "Poor", "target": "Street Clinic"},
+    {"source": "Rich", "target": "Luxury Collision"},
+    {"source": "Rich", "target": "Health Scare"},
+    {"source": "Rich", "target": "Condo Escape"},
+    {"source": "Rich", "target": "Private Breakdown"},
+    {"source": "Rich", "target": "Private Ambulance"},
+    {"source": "Rich", "target": "Bottled Water"},
+    {"source": "Rich", "target": "VIP Sushi"},
+    {"source": "Motorbike Crash", "target": "Por Tek Tung Rescue"},
+    {"source": "Por Tek Tung Rescue", "target": "Public Hospital"},
+    {"source": "Public Hospital", "target": "Poor Temple"},
+    {"source": "Poor Temple", "target": "Cremation"},
+    {"source": "Flooded Home", "target": "Por Tek Tung Rescue"},
+    {"source": "Polluted Well", "target": "Por Tek Tung Rescue"},
+    {"source": "Starving Body", "target": "Por Tek Tung Rescue"},
+    {"source": "Suicide Attempt", "target": "Por Tek Tung Rescue"},
+    {"source": "Street Clinic", "target": "Public Hospital"},
+    {"source": "Luxury Collision", "target": "Private Ambulance"},
+    {"source": "Private Ambulance", "target": "VIP Hospital"},
+    {"source": "VIP Hospital", "target": "Rich Temple"},
+    {"source": "Rich Temple", "target": "Marble Vault"},
+    {"source": "Health Scare", "target": "Private Ambulance"},
+    {"source": "Private Breakdown", "target": "VIP Hospital"},
+    {"source": "Condo Escape", "target": "Rich Temple"},
+    {"source": "Bottled Water", "target": "Alive"},
+    {"source": "VIP Sushi", "target": "Alive"}
+  ]
+};
+
+const degreeMap = calculateDegrees(data);
+const maxDegree = Math.max(...Array.from(degreeMap.values()));
+const radiusScale = d3.scaleSqrt()
+  .domain([1, maxDegree])
+  .range([6, 30]);
+
+var simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(d => d.id)
+      .distance(d => 50 + radiusScale(degreeMap.get(d.source.id)) + radiusScale(degreeMap.get(d.target.id))))
+    .force("charge", d3.forceManyBody().strength(-40))
+    .force("x", d3.forceX().strength(0.05).x(d => {
+      if(d.group === 0) return width * 0.25;
+      if(d.group === 1) return width * 0.75;
+      return width/2;
+    }))
+    .force("y", d3.forceY().strength(0.02).y(height/2))
+    .force("collision", d3.forceCollide()
+      .radius(d => radiusScale(degreeMap.get(d.id)) + 2)
+      .strength(0.8))
+    .alphaDecay(0.01);
+
+var link = svg.append("g")
+    .attr("class", "links")
+  .selectAll("line")
+  .data(data.links)
+  .enter().append("line")
+    .attr("stroke-width", 2);
+
+var node = svg.append("g")
+    .attr("class", "nodes")
+  .selectAll("circle")
+  .data(data.nodes)
+  .enter().append("circle")
+    .attr("r", d => radiusScale(degreeMap.get(d.id)))
+    .attr("fill", d => {
+      if (d.type === "root") return "white";
+      if (d.id.includes("Temple")) return "#ffd700";
+      if (d.type === "hospital") return d.group === 2 ? "#004d00" : "#00ff00";
+      if (d.id === "Alive") return "#00cc00";
+      if (d.id === "Cremation") return "#ff9900";
+      if (d.id === "Marble Vault") return "#a0522d";
+      return color(d.group);
+    })
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+var labels = svg.append("g")
+    .attr("class", "labels")
+  .selectAll("text")
+  .data(data.nodes)
+  .enter().append("text")
+    .text(d => d.id)
+    .attr("font-size", 10)
+    .attr("dx", d => radiusScale(degreeMap.get(d.id)) + 4)
+    .attr("dy", ".35em")
+    .style("font-family", "'Inter', sans-serif");
+
+simulation
+    .nodes(data.nodes)
+    .on("tick", ticked);
+
+simulation.force("link")
+    .links(data.links);
+
+simulation.alpha(1).restart();
+
+function ticked() {
+  link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+  node
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y);
+
+  labels
+      .attr("x", d => d.x)
+      .attr("y", d => d.y);
+}
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
+</script>
+</body>
+</html>
