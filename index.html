@@ -1,281 +1,200 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Health Pathways Visualization</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-
-body {
-  background: #000;
-  margin: 0;
-  overflow: hidden;
-}
-
-.links line {
-  stroke: #666;
-  stroke-opacity: 0.6;
-}
-
-.nodes circle {
-  stroke: #222;
-  stroke-width: 1.5px;
-}
-
-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  fill: white;
-  pointer-events: none;
-}
-
-.title-box {
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  background: rgba(40, 40, 40, 0.9);
-  border: 1px solid #666;
-  color: white;
-  padding: 15px;
-  border-radius: 4px;
-  pointer-events: none;
-  z-index: 101;
-}
-
-.title-box h2 {
-  margin: 0 0 8px 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 24px;
-}
-
-.title-box p {
-  margin: 0;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  opacity: 0.8;
-}
-
-.legend {
-  font-family: 'Inter', sans-serif;
-  padding: 10px;
-  position: absolute;
-  left: 20px;
-  top: 120px;
-  background: rgba(40, 40, 40, 0.9);
-  border: 1px solid #666;
-  color: white;
-  font-size: 12px;
-  border-radius: 4px;
-  z-index: 100;
-}
-
-.legend div {
-  margin: 4px 0;
-}
-</style>
+    <title>Thai Death Pathways</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body { 
+            background: #000; 
+            margin: 0; 
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .node { stroke: #333; stroke-width: 1.5px; cursor: pointer; }
+        .link { stroke: #666; stroke-opacity: 0.6; }
+        text { 
+            font-family: 'Inter', sans-serif; 
+            font-size: 10px; 
+            fill: #fff;
+            pointer-events: none;
+        }
+        .legend {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(30,30,30,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            border: 1px solid #444;
+        }
+    </style>
 </head>
 <body>
-<div class="title-box">
-  <h2>giro</h2>
-  <p>infrastructure of death</p>
-</div>
+    <div class="legend">
+        <div style="color:#ff6b6b">■ Death Types</div>
+        <div style="color:#4ecdc4">■ Spirit World</div>
+        <div style="color:#ffe66d">■ Real World</div>
+        <div style="color:#ff9ff3">■ Transition Points</div>
+    </div>
+    <svg width="1200" height="800"></svg>
 
-<div class="legend">
-  <div><span style="color:#ff4444">■</span> Poor Pathway</div>
-  <div><span style="color:#4444ff">■</span> Rich Pathway</div>
-  <div><span style="color:#004d00">■</span> Public Hospital</div>
-  <div><span style="color:#00ff00">■</span> Private Hospital</div>
-  <div><span style="color:#ffd700">■</span> Temple</div>
-  <div><span style="color:#ff9900">■</span> Cremation</div>
-  <div><span style="color:#00cc00">■</span> Alive</div>
-  <div><span style="color:#a0522d">■</span> Marble Vault</div>
-</div>
-
-<svg width="1200" height="800"></svg>
-<script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-var svg = d3.select("svg"),
-    width = +svg.attr("width"),
-    height = +svg.attr("height");
+// INITIALIZATION ==============================================
+const svg = d3.select("svg");
+const width = 1200;
+const height = 800;
 
-function calculateDegrees(data) {
-  const degreeMap = new Map();
-  data.nodes.forEach(node => degreeMap.set(node.id, 0));
-  
-  data.links.forEach(link => {
-    degreeMap.set(link.source, degreeMap.get(link.source) + 1);
-    degreeMap.set(link.target, degreeMap.get(link.target) + 1);
-  });
-  
-  return degreeMap;
-}
+// DATA ========================================================
+const nodes = [
+    {id: "💀 Death", group: 0, size: 28},
+    {id: "🔪 Murder", group: 1},
+    {id: "🌿 Natural Death", group: 1},
+    {id: "💥 Sudden Death", group: 1},
+    {id: "💔 Suicide", group: 1},
+    {id: "🏥 Hospital Death", group: 1},
+    {id: "👻 Phi Tai Hong", group: 2},
+    {id: "🕯️ Home Altar Spirit", group: 2},
+    {id: "🌀 Restless Ghost", group: 2},
+    {id: "♾️ Karmic Loop", group: 2},
+    {id: "🏥 Hospital Spirit", group: 2},
+    {id: "🔄 Replacement Rituals", group: 2},
+    {id: "📜 Merit Rituals", group: 2},
+    {id: "⚖️ Judgment", group: 2},
+    {id: "🌟 Rebirth", group: 2},
+    {id: "🔥 Hell Rebirth", group: 2},
+    {id: "🚑 Police Morgue", group: 3},
+    {id: "🕍 Temple", group: 3},
+    {id: "⚰️ Cremation", group: 3},
+    {id: "🏛️ University Donation", group: 3},
+    {id: "👑 Royal Cremation", group: 3},
+    {id: "49 Days", group: 4},
+    {id: "Suep Winyan", group: 4}
+];
 
-var color = d3.scaleOrdinal()
-  .range(["#ff4444", "#4444ff", "#004d00", "#00ff00", 
-          "#ffd700", "#ff9900", "#00cc00", "#a0522d"]);
+const links = [
+    {source: "💀 Death", target: "🔪 Murder"},
+    {source: "💀 Death", target: "🌿 Natural Death"},
+    {source: "💀 Death", target: "💥 Sudden Death"},
+    {source: "💀 Death", target: "💔 Suicide"},
+    {source: "💀 Death", target: "🏥 Hospital Death"},
+    {source: "🔪 Murder", target: "👻 Phi Tai Hong"},
+    {source: "👻 Phi Tai Hong", target: "🔄 Replacement Rituals"},
+    {source: "🔄 Replacement Rituals", target: "⚖️ Judgment"},
+    {source: "⚖️ Judgment", target: "🔥 Hell Rebirth"},
+    {source: "🔪 Murder", target: "🚑 Police Morgue"},
+    {source: "🚑 Police Morgue", target: "🕍 Temple"},
+    {source: "🕍 Temple", target: "⚰️ Cremation"},
+    {source: "🌿 Natural Death", target: "🕯️ Home Altar Spirit"},
+    {source: "🕯️ Home Altar Spirit", target: "49 Days"},
+    {source: "49 Days", target: "📜 Merit Rituals"},
+    {source: "📜 Merit Rituals", target: "⚖️ Judgment"},
+    {source: "⚖️ Judgment", target: "🌟 Rebirth"},
+    {source: "🌿 Natural Death", target: "🕍 Temple"},
+    {source: "🕍 Temple", target: "⚰️ Cremation"},
+    {source: "💥 Sudden Death", target: "🌀 Restless Ghost"},
+    {source: "🌀 Restless Ghost", target: "🔄 Replacement Rituals"},
+    {source: "🔄 Replacement Rituals", target: "⚖️ Judgment"},
+    {source: "⚖️ Judgment", target: "🔥 Hell Rebirth"},
+    {source: "💥 Sudden Death", target: "🚑 Police Morgue"},
+    {source: "🚑 Police Morgue", target: "🕍 Temple"},
+    {source: "💔 Suicide", target: "♾️ Karmic Loop"},
+    {source: "♾️ Karmic Loop", target: "📜 Merit Rituals"},
+    {source: "📜 Merit Rituals", target: "⚖️ Judgment"},
+    {source: "⚖️ Judgment", target: "⛓️ Hell Rebirth"},
+    {source: "💔 Suicide", target: "🚑 Police Morgue"},
+    {source: "🏥 Hospital Death", target: "🏥 Hospital Spirit"},
+    {source: "🏥 Hospital Spirit", target: "Suep Winyan"},
+    {source: "Suep Winyan", target: "⚖️ Judgment"},
+    {source: "⚖️ Judgment", target: "🌟 Rebirth"},
+    {source: "🏥 Hospital Death", target: "🏛️ University Donation"},
+    {source: "🏛️ University Donation", target: "⚰️ Cremation"}
+];
 
-var data = {
-  "nodes": [
-    {"id": "Poor", "type": "root", "group": 0},
-    {"id": "Rich", "type": "root", "group": 1},
-    {"id": "Motorbike Crash", "type": "event", "group": 0},
-    {"id": "Flooded Home", "type": "event", "group": 0},
-    {"id": "Polluted Well", "type": "event", "group": 0},
-    {"id": "Starving Body", "type": "event", "group": 0},
-    {"id": "Suicide Attempt", "type": "event", "group": 0},
-    {"id": "Por Tek Tung Rescue", "type": "service", "group": 0},
-    {"id": "Street Clinic", "type": "service", "group": 0},
-    {"id": "Luxury Collision", "type": "event", "group": 1},
-    {"id": "Health Scare", "type": "event", "group": 1},
-    {"id": "Condo Escape", "type": "event", "group": 1},
-    {"id": "Private Breakdown", "type": "event", "group": 1},
-    {"id": "Private Ambulance", "type": "service", "group": 1},
-    {"id": "Bottled Water", "type": "service", "group": 1},
-    {"id": "VIP Sushi", "type": "service", "group": 1},
-    {"id": "Public Hospital", "type": "hospital", "group": 2},
-    {"id": "VIP Hospital", "type": "hospital", "group": 3},
-    {"id": "Poor Temple", "type": "temple", "group": 4},
-    {"id": "Rich Temple", "type": "temple", "group": 4},
-    {"id": "Cremation", "type": "end", "group": 5},
-    {"id": "Alive", "type": "end", "group": 6},
-    {"id": "Marble Vault", "type": "end", "group": 7}
-  ],
-  "links": [
-    {"source": "Poor", "target": "Motorbike Crash"},
-    {"source": "Poor", "target": "Flooded Home"},
-    {"source": "Poor", "target": "Polluted Well"},
-    {"source": "Poor", "target": "Starving Body"},
-    {"source": "Poor", "target": "Suicide Attempt"},
-    {"source": "Poor", "target": "Por Tek Tung Rescue"},
-    {"source": "Poor", "target": "Street Clinic"},
-    {"source": "Rich", "target": "Luxury Collision"},
-    {"source": "Rich", "target": "Health Scare"},
-    {"source": "Rich", "target": "Condo Escape"},
-    {"source": "Rich", "target": "Private Breakdown"},
-    {"source": "Rich", "target": "Private Ambulance"},
-    {"source": "Rich", "target": "Bottled Water"},
-    {"source": "Rich", "target": "VIP Sushi"},
-    {"source": "Motorbike Crash", "target": "Por Tek Tung Rescue"},
-    {"source": "Por Tek Tung Rescue", "target": "Public Hospital"},
-    {"source": "Public Hospital", "target": "Poor Temple"},
-    {"source": "Poor Temple", "target": "Cremation"},
-    {"source": "Flooded Home", "target": "Por Tek Tung Rescue"},
-    {"source": "Polluted Well", "target": "Por Tek Tung Rescue"},
-    {"source": "Starving Body", "target": "Por Tek Tung Rescue"},
-    {"source": "Suicide Attempt", "target": "Por Tek Tung Rescue"},
-    {"source": "Street Clinic", "target": "Public Hospital"},
-    {"source": "Luxury Collision", "target": "Private Ambulance"},
-    {"source": "Private Ambulance", "target": "VIP Hospital"},
-    {"source": "VIP Hospital", "target": "Rich Temple"},
-    {"source": "Rich Temple", "target": "Marble Vault"},
-    {"source": "Health Scare", "target": "Private Ambulance"},
-    {"source": "Private Breakdown", "target": "VIP Hospital"},
-    {"source": "Condo Escape", "target": "Rich Temple"},
-    {"source": "Bottled Water", "target": "Alive"},
-    {"source": "VIP Sushi", "target": "Alive"}
-  ]
-};
+// SIMULATION ==================================================
+const simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+    .force("charge", d3.forceManyBody().strength(-200))
+    .force("center", d3.forceCenter(width/2, height/2))
+    .force("collision", d3.forceCollide().radius(d => d.size || 12))
+    .alphaDecay(0.02)
+    .alpha(0.5)
+    .restart();
 
-const degreeMap = calculateDegrees(data);
-const maxDegree = Math.max(...Array.from(degreeMap.values()));
-const radiusScale = d3.scaleSqrt()
-  .domain([1, maxDegree])
-  .range([6, 30]);
-
-var simulation = d3.forceSimulation()
-    .force("link", d3.forceLink().id(d => d.id)
-      .distance(d => 50 + radiusScale(degreeMap.get(d.source.id)) + radiusScale(degreeMap.get(d.target.id))))
-    .force("charge", d3.forceManyBody().strength(-40))
-    .force("x", d3.forceX().strength(0.05).x(d => {
-      if(d.group === 0) return width * 0.25;
-      if(d.group === 1) return width * 0.75;
-      return width/2;
-    }))
-    .force("y", d3.forceY().strength(0.02).y(height/2))
-    .force("collision", d3.forceCollide()
-      .radius(d => radiusScale(degreeMap.get(d.id)) + 2)
-      .strength(0.8))
-    .alphaDecay(0.01);
-
-var link = svg.append("g")
-    .attr("class", "links")
-  .selectAll("line")
-  .data(data.links)
-  .enter().append("line")
+// DRAW ELEMENTS ===============================================
+const link = svg.append("g")
+    .selectAll("line")
+    .data(links)
+    .join("line")
+    .attr("class", "link")
     .attr("stroke-width", 2);
 
-var node = svg.append("g")
-    .attr("class", "nodes")
-  .selectAll("circle")
-  .data(data.nodes)
-  .enter().append("circle")
-    .attr("r", d => radiusScale(degreeMap.get(d.id)))
-    .attr("fill", d => {
-      if (d.type === "root") return "white";
-      if (d.id.includes("Temple")) return "#ffd700";
-      if (d.type === "hospital") return d.group === 2 ? "#004d00" : "#00ff00";
-      if (d.id === "Alive") return "#00cc00";
-      if (d.id === "Cremation") return "#ff9900";
-      if (d.id === "Marble Vault") return "#a0522d";
-      return color(d.group);
-    })
+const node = svg.append("g")
+    .selectAll("circle")
+    .data(nodes)
+    .join("circle")
+    .attr("class", "node")
+    .attr("r", d => d.size || 10)
+    .attr("fill", d => ["#fff","#ff6b6b","#4ecdc4","#ffe66d","#ff9ff3"][d.group])
     .call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
         .on("end", dragended));
 
-var labels = svg.append("g")
-    .attr("class", "labels")
-  .selectAll("text")
-  .data(data.nodes)
-  .enter().append("text")
+const label = svg.append("g")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
     .text(d => d.id)
-    .attr("font-size", 10)
-    .attr("dx", d => radiusScale(degreeMap.get(d.id)) + 4)
-    .attr("dy", ".35em")
-    .style("font-family", "'Inter', sans-serif");
+    .attr("font-size", d => d.size ? "14px" : "10px")
+    .attr("dx", d => d.size ? 18 : 12)
+    .attr("dy", "0.35em");
 
-simulation
-    .nodes(data.nodes)
-    .on("tick", ticked);
+// UPDATE CYCLE ================================================
+simulation.on("tick", () => {
+    link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
 
-simulation.force("link")
-    .links(data.links);
+    node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
 
-simulation.alpha(1).restart();
+    label
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+});
 
-function ticked() {
-  link
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y);
-
-  node
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y);
-
-  labels
-      .attr("x", d => d.x)
-      .attr("y", d => d.y);
+// DRAG HANDLERS ===============================================
+function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
 }
 
-function dragstarted(d) {
-  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-  d.fx = d.x;
-  d.fy = d.y;
+function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
 }
 
-function dragged(d) {
-  d.fx = d3.event.x;
-  d.fy = d3.event.y;
+function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
 }
 
-function dragended(d) {
-  if (!d3.event.active) simulation.alphaTarget(0);
-  d.fx = null;
-  d.fy = null;
-}
+// ZOOM HANDLER ================================================
+svg.call(d3.zoom()
+    .scaleExtent([0.5, 4])
+    .on("zoom", (event) => {
+        node.attr("transform", event.transform);
+        link.attr("transform", event.transform);
+        label.attr("transform", event.transform);
+    }));
 </script>
 </body>
 </html>
