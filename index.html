@@ -50,9 +50,8 @@
         <div style="color:#ff0000">■ Death Types</div>
         <div style="color:#00ffd0">■ Spirit World</div>
         <div style="color:#fff700">■ Real World</div>
-        <div style="color:#ff9ff3">■ Transition Points</div>
     </div>
-    <svg width="1200" height="800">
+    <svg width="2400" height="1800">
         <defs>
             <filter id="spirit-glow" height="300%" width="300%" x="-75%" y="-75%">
                 <feGaussianBlur stdDeviation="4" result="glow"/>
@@ -67,9 +66,9 @@
 <script>
 // INITIALIZATION ==============================================
 const svg = d3.select("svg");
-const width = 1200;
-const height = 800;
-const colors = ["#fff","#ff0000","#00ffd0","#fff700","#ff9ff3"];
+const width = 2400;
+const height = 1800;
+const colors = ["#ffffff","#ff0000","#00ffd0","#fff700"];
 let currentTransform = d3.zoomIdentity;
 
 // ENHANCED PARTICLE SYSTEM ====================================
@@ -100,12 +99,12 @@ function createParticles(x, y, color, isClick=false) {
 
 // ENHANCED BACKGROUND PARTICLES ===============================
 function createBackgroundParticles() {
-    const colorCycle = ["#00ffd0", "#fff700", "#ff9ff3", "#ff0000"];
+    const colorCycle = ["#00ffd0", "#fff700", "#ff0000"];
     const bgParticles = d3.range(500).map(() => ({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
         color: colorCycle[Math.floor(Math.random() * colorCycle.length)]
     }));
 
@@ -116,7 +115,7 @@ function createBackgroundParticles() {
         .attr("class", "bg-particle")
         .attr("r", 1)
         .attr("fill", d => d.color)
-        .attr("opacity", 0.5);
+        .attr("opacity", 0.8);
 
     d3.timer(() => {
         particles.selectAll(".bg-particle")
@@ -134,9 +133,9 @@ function createBackgroundParticles() {
 function createNodeAmbientParticles() {
     d3.timer(() => {
         nodes.forEach(node => {
-            if(node.group === 2) {
-                // Use raw coordinates, transform handled by parent group
-                createParticles(node.x, node.y, colors[node.group]);
+            if(node.group === 2 || node.id === "Rebirth" || node.id === "Death") {
+                const particleColor = node.group === 0 ? "#ffffff" : colors[node.group];
+                createParticles(node.x, node.y, particleColor);
             }
         });
     });
@@ -171,7 +170,7 @@ const nodes = [
     {id: "Merit Rituals", group: 2},
     {id: "Heaven", group: 2},
     {id: "Hell", group: 2},
-    {id: "Rebirth", group: 2},
+    {id: "Rebirth", group: 0},
     // Real World Entities
     {id: "Police Morgue", group: 3},
     {id: "Temple", group: 3},
@@ -278,8 +277,7 @@ const node = svg.append("g")
         if(d.group === 2) d3.select(this).attr("opacity", 0.2);
     })
     .on("click", function(event, d) {
-        // Use raw coordinates, transform handled by parent group
-        createParticles(d.x, d.y, colors[d.group], true);
+        createParticles(d.x, d.y, d.group === 0 ? "#ffffff" : colors[d.group], true);
     })
     .call(d3.drag()
         .on("start", dragstarted)
