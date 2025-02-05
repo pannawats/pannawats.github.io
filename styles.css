@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+  background: #000;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Left Panel: Force-Directed Graph */
+.fdg-container {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  border-right: 1px solid #333;
+}
+
+.legend {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 15px;
+  border-radius: 6px;
+  color: white;
+  border: 1px solid #000000;
+  z-index: 1000;
+  
+}
+
+/* Right Panel: Decision Tree & Death Counter */
+.info-container {
+  width: 50%;
+  height: 100%;
+  background: #000;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#right-panel .death-counter {
+  color: #ff0000 !important;
+  font-size: 12px !important;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.5;
+}
+
+
+/* Decision Tree Styling */
+.decision-tree {
+  width: 100%;
+  height: 80%;
+  color: white;
+  overflow: auto;
+}
+
+.tree-node {
+  white-space: nowrap;
+}
+
+.tree-link {
+  fill: none;
+}
+
+.tree-node circle {
+  fill: #fff;
+  stroke: #ffffff;
+  stroke-width: 1.5px;
+}
+
+.tree-node text {
+  font-size: 12px;
+  fill: #fff;
+}
+
+/* Force-Directed Graph Elements */
+.node {
+  stroke: #333;
+  stroke-width: 1.5px;
+  cursor: pointer;
+  transition: none;
+}
+
+.spirit-node {
+  opacity: 0.3;
+  filter: url(#spirit-glow);
+}
+
+.link {
+  stroke: #666;
+  stroke-opacity: 0.6;
+}
+
+text {
+  font-family: 'Inter', sans-serif;
+  fill: #fff;
+  pointer-events: none;
+}
