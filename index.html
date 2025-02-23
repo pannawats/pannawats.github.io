@@ -7,7 +7,6 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-
     body {
       background: #000;
       margin: 0;
@@ -16,21 +15,17 @@
       display: flex;
       height: 100vh;
     }
-
     .container {
       display: flex;
       width: 100%;
       height: 100%;
     }
-
-    /* Left Panel: Force-Directed Graph */
     .fdg-container {
       width: 50%;
       height: 100%;
       position: relative;
       border-right: 1px solid #333;
     }
-
     .legend {
       position: absolute;
       left: 20px;
@@ -42,22 +37,8 @@
       border: 1px solid #ffffff;
       z-index: 1000;
       font-size: 12px !important;
-  font-weight: bold;
+      font-weight: bold;
     }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px; /* Space between each line */
-    }
-
-    .legend-circle {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-
-    /* Right Panel: Decision Tree & Death Counter */
     .info-container {
       width: 50%;
       height: 100%;
@@ -69,7 +50,6 @@
       align-items: center;
       justify-content: center;
     }
-
     .death-counter {
       color: #ff0000;
       font-size: 12px;
@@ -78,52 +58,41 @@
       text-align: center;
       line-height: 1.5;
     }
-
-    /* Decision Tree Styling */
     .decision-tree {
       width: 100%;
       height: 80%;
       color: white;
       overflow: auto;
     }
-
     .tree-node {
       white-space: nowrap;
     }
-
     .tree-link {
       fill: none;
     }
-
     .tree-node circle {
       fill: #fff;
       stroke: #ffffff;
       stroke-width: 1.5px;
     }
-
     .tree-node text {
       font-size: 10px;
       fill: #fff;
     }
-
-    /* Force-Directed Graph Elements */
     .node {
       stroke: #000000;
       stroke-width: 0.25px;
       cursor: pointer;
       transition: none;
     }
-
     .spirit-node {
       opacity: 0.3;
       filter: url(#spirit-glow);
     }
-
     .link {
       stroke: #666;
       stroke-opacity: 0.6;
     }
-
     text {
       font-family: 'Inter', sans-serif;
       fill: #fff;
@@ -133,7 +102,6 @@
 </head>
 <body>
   <div class="container">
-    <!-- Left Panel: Force-Directed Graph -->
     <div class="fdg-container">
       <div class="legend">
         <div style="color:#ff0000">■ Death Types</div>
@@ -152,34 +120,21 @@
         </defs>
       </svg>
     </div>
-
-    <!-- Right Panel: Decision Tree & Death Counter -->
     <div class="info-container">
       <div class="death-counter">
-        <div>
-          In Thailand, every minute, one life is lost. Death is not an end but a passage<br />
-          through rituals, systems, and beliefs that dictate its journey.
-        </div>
+        <div>In Thailand, every minute, one life is lost. Death is not an end but a passage<br />through rituals, systems, and beliefs that dictate its journey.</div>
         <div>Deaths: <span id="deathCount">0</span></div>
         <div id="startTime"></div>
       </div>
-      <!-- Expanded viewBox for horizontal decision tree -->
       <svg id="decisionTree" class="decision-tree" width="100%" height="80%" viewBox="0 0 700 800" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
   </div>
-
   <script>
-    /***********************
-     * Left Panel: Force-Directed Graph
-     ***********************/
     const fgSvg = d3.select("#forceGraph");
     const fgViewBox = fgSvg.attr("viewBox").split(" ");
     const fgWidth = +fgViewBox[2];
     const fgHeight = +fgViewBox[3];
-    // Colors for groups: Group 0: white, Group 1: red, Group 2: blue-green, Group 3: yellowish.
     const colors = ["#ffffff", "#ff0000", "#00ffd0", "#fff700"];
-
-    // Node size configuration:
     const specialNodes = new Set(["Wat Pho", "Wat Saket", "Wat Benchamabophit", "Wat Traimit", "Wat Ratchabophit", 
         "Wat Bowonniwet", "Wat Suthat", "Wat Mahathat", "Wat Hua Lamphong", "Wat Pathum Wanaram", "Wat Yannawa", 
         "Wat Paknam Bhasicharoen", "Siriraj Hospital", "Bumrungrad International Hospital", "Chulalongkorn Hospital", 
@@ -191,22 +146,19 @@
         "Lat Phrao Police Station", "Don Mueang Police Station", "Bang Na Police Station", "Min Buri Police Station", 
         "Nong Chok Police Station", "Bang Khen Police Station", "Sai Mai Police Station", "Bang Sue Police Station", 
         "Wang Thonglang Police Station", "Yannawa Police Station", "Chulalongkorn University", "Thammasat University", 
-        "Mahidol University", "Kasetsart University", "King Mongkut’s University of Technology Thonburi", 
+        "Mahidol University", "Kasetsart University", "King Mongkut's University of Technology Thonburi", 
         "Srinakharinwirot University", "Assumption University", "Bangkok University", "Ramkhamhaeng University", 
         "Suan Dusit University", "Siam University", "Rangsit University", "Bangkokthonburi University", 
         "Ruam Katanyu Foundation", "Por Tek Tung Foundation", "Sawang Boriboon Thammasathan Foundation", 
         "Poh Teck Tung Foundation", "Siam Ruam Jai Foundation", "Bangkok Rescue", "Bangkok Fire and Rescue Department", 
         "Thai Red Cross Society", "Cātummahārājika", "Tāvatiṃsa", "Yāma", "Tusita", "Nimmānarati", 
         "Paranimmitavasavatti", "Sanjīva", "Kālasutta", "Sanghāta", "Roruva", "Mahāroruva", "Tapana", "Pratāpana", "Avīci"]);
-
     function getNodeRadius(d) {
-      if(specialNodes.has(d.id)) return 4;  // All specified nodes get radius 4
+      if(specialNodes.has(d.id)) return 4;
       if(d.group === 0) return 12;
       else if(d.group === 1) return 10;
-      else if(d.group === 2) return 8;
       else return 8;
     }
-
     d3.json("data.json").then(function(data) {
       const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink(data.links).id(d => d.id).distance(80))
@@ -216,16 +168,12 @@
         .force("y", d3.forceY(fgHeight / 2).strength(0.15))
         .force("collision", d3.forceCollide().radius(d => getNodeRadius(d)))
         .alphaDecay(0.005);
-
-      // Restart simulation periodically to keep it flowing
       setInterval(() => simulation.restart(), 2000);
-
       const link = fgSvg.append("g")
         .selectAll("line")
         .data(data.links)
         .join("line")
         .attr("class", "link");
-
       const node = fgSvg.append("g")
         .selectAll("circle")
         .data(data.nodes)
@@ -251,7 +199,6 @@
         .on("click", (event, d) => {
           createClickParticles(d.x, d.y, colors[d.group]);
         });
-
       const label = fgSvg.append("g")
         .selectAll("text")
         .data(data.nodes)
@@ -260,7 +207,6 @@
         .attr("font-size", d => (d.group === 0 || d.group === 1) ? 14 : 8)
         .attr("dx", 10)
         .attr("dy", "0.35em");
-
       simulation.on("tick", () => {
         link.attr("x1", d => d.source.x)
             .attr("y1", d => d.source.y)
@@ -271,10 +217,9 @@
         label.attr("x", d => d.x)
              .attr("y", d => d.y);
       });
-
       function createClickParticles(x, y, color) {
         const particles = fgSvg.append("g");
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 40; i++) {
           particles.append("circle")
             .attr("cx", x)
             .attr("cy", y)
@@ -289,8 +234,6 @@
             .remove();
         }
       }
-
-      // Spirit node sparkler effect: continuously emit spark particles.
       const spiritNodes = data.nodes.filter(d => d.group === 2);
       spiritNodes.forEach(d => {
         d3.interval(() => {
@@ -299,7 +242,6 @@
           }
         }, 100);
       });
-
       function createSpiritSpark(x, y, color) {
         const spark = fgSvg.append("circle")
           .attr("cx", x)
@@ -315,8 +257,6 @@
           .attr("opacity", 0)
           .remove();
       }
-
-      // Background particles confined to 800×800.
       const bgParticles = d3.range(500).map(() => ({
         x: Math.random() * fgWidth,
         y: Math.random() * fgHeight,
@@ -346,19 +286,13 @@
           });
       });
     }).catch(error => console.error("Error loading data:", error));
-
-    /***********************
-     * Right Panel: Decision Tree & Death Counter
-     ***********************/
+    
     const deathCountEl = d3.select("#deathCount");
     const startTimeEl = d3.select("#startTime");
     const now = new Date();
     startTimeEl.text("Counting since: " + now.toLocaleString());
     let deathCount = 0;
-
-    // Full decision tree (summary view) with hierarchical nesting.
-    // Replace "Hospital or University Donation" with "Donation"
-    // Replace "Replacement Rituals" with "Replacement"
+    
     const fullTreeData = {
       name: "Death",
       children: [
@@ -378,9 +312,13 @@
             { name: "Murder Real", children: [
                 { name: "Rescue Unit", children: [
                     { name: "Police Morgue", children: [
-                        { name: "Temple", children: [{ name: "Cremation" }] }
-                      ] },
-                    { name: "Temple", children: [{ name: "Cremation" }] }
+                        { name: "Temple", children: [
+                          { name: "Cremation", children: [{ name: "Storage" }] }
+                        ]}
+                    ]},
+                    { name: "Temple", children: [
+                      { name: "Cremation", children: [{ name: "Storage" }] }
+                    ]}
                 ]}
             ]}
         ]},
@@ -392,8 +330,12 @@
                 ]}
             ]},
             { name: "Natural Real", children: [
-                { name: "Donation", children: [{ name: "Cremation" }] },
-                { name: "Temple", children: [{ name: "Cremation" }] }
+                { name: "Donation", children: [
+                  { name: "Cremation", children: [{ name: "Storage" }] }
+                ]},
+                { name: "Temple", children: [
+                  { name: "Cremation", children: [{ name: "Storage" }] }
+                ]}
             ]}
         ]},
         { name: "Sudden Death", children: [
@@ -410,9 +352,13 @@
             { name: "Sudden Real", children: [
                 { name: "Rescue Unit", children: [
                     { name: "Police Morgue", children: [
-                        { name: "Temple", children: [{ name: "Cremation" }] }
+                        { name: "Temple", children: [
+                          { name: "Cremation", children: [{ name: "Storage" }] }
+                        ]}
                     ]},
-                    { name: "Temple", children: [{ name: "Cremation" }] }
+                    { name: "Temple", children: [
+                      { name: "Cremation", children: [{ name: "Storage" }] }
+                    ]}
                 ]}
             ]}
         ]},
@@ -429,22 +375,27 @@
             { name: "Suicide Real", children: [
                 { name: "Rescue Unit", children: [
                     { name: "Police Morgue", children: [
-                        { name: "Temple", children: [{ name: "Cremation" }] }
+                        { name: "Temple", children: [
+                          { name: "Cremation", children: [{ name: "Storage" }] }
+                        ]}
                     ]},
-                    { name: "Temple", children: [{ name: "Cremation" }] }
+                    { name: "Temple", children: [
+                      { name: "Cremation", children: [{ name: "Storage" }] }
+                    ]}
                 ]}
             ]}
         ]},
         { name: "Hospital Death", children: [
             { name: "Hospital Spirit", children: [{ name: "Merit Rituals" }] },
             { name: "Hospital Real", children: [
-                { name: "Donation", children: [{ name: "Cremation" }] }
+                { name: "Donation", children: [
+                  { name: "Cremation", children: [{ name: "Storage" }] }
+                ]}
             ]}
         ]}
       ]
     };
-
-    // Detailed death pathway templates.
+    
     const deathTemplates = [
       {
         name: "Murder",
@@ -461,8 +412,14 @@
           ]},
           { name: "Murder Real", children: [
               { name: "Rescue Unit", children: [
-                  { name: "Police Morgue", children: [{ name: "Temple", children: [{ name: "Cremation" }] }] },
-                  { name: "Temple", children: [{ name: "Cremation" }] }
+                  { name: "Police Morgue", children: [
+                    { name: "Temple", children: [
+                      { name: "Cremation", children: [{ name: "Storage" }] }
+                    ]}
+                  ]},
+                  { name: "Temple", children: [
+                    { name: "Cremation", children: [{ name: "Storage" }] }
+                  ]}
               ]}
           ]}
         ]
@@ -477,8 +434,12 @@
               ]}
           ]},
           { name: "Natural Real", children: [
-              { name: "Donation", children: [{ name: "Cremation" }] },
-              { name: "Temple", children: [{ name: "Cremation" }] }
+              { name: "Donation", children: [
+                { name: "Cremation", children: [{ name: "Storage" }] }
+              ]},
+              { name: "Temple", children: [
+                { name: "Cremation", children: [{ name: "Storage" }] }
+              ]}
           ]}
         ]
       },
@@ -496,8 +457,14 @@
           ]},
           { name: "Suicide Real", children: [
               { name: "Rescue Unit", children: [
-                  { name: "Police Morgue", children: [{ name: "Temple", children: [{ name: "Cremation" }] }] },
-                  { name: "Temple", children: [{ name: "Cremation" }] }
+                  { name: "Police Morgue", children: [
+                    { name: "Temple", children: [
+                      { name: "Cremation", children: [{ name: "Storage" }] }
+                    ]}
+                  ]},
+                  { name: "Temple", children: [
+                    { name: "Cremation", children: [{ name: "Storage" }] }
+                  ]}
               ]}
           ]}
         ]
@@ -507,23 +474,21 @@
         children: [
           { name: "Hospital Spirit", children: [{ name: "Merit Rituals" }] },
           { name: "Hospital Real", children: [
-              { name: "Donation", children: [{ name: "Cremation" }] }
+              { name: "Donation", children: [
+                { name: "Cremation", children: [{ name: "Storage" }] }
+              ]}
           ]}
         ]
       }
     ];
-
-    // Horizontal decision tree: expanded viewBox width 700.
+    
     const treeSvg = d3.select("#decisionTree");
     const treeMargin = { top: 20, right: 20, bottom: 20, left: 20 };
     const treeViewBox = treeSvg.attr("viewBox").split(" ");
-    // Update viewBox width to 700
     const tWidth = 700 - treeMargin.left - treeMargin.right;
     const tHeight = +treeViewBox[3] - treeMargin.top - treeMargin.bottom;
-    // For horizontal layout, we set tree layout size as [tHeight, tWidth]
     const treeLayout = d3.tree().size([tHeight, tWidth]);
-
-    // Function to randomly choose one child from a Judgment node.
+    
     function randomizeJudgment(node) {
       if(node.data.name === "Judgment" && node.children && node.children.length === 2) {
         node.children = [node.children[Math.floor(Math.random() * node.children.length)]];
@@ -532,7 +497,7 @@
         node.children.forEach(child => randomizeJudgment(child));
       }
     }
-
+    
     function renderTree(treeData, randomize = false) {
       treeSvg.selectAll("*").remove();
       const root = d3.hierarchy(treeData);
@@ -542,7 +507,6 @@
       }
       const g = treeSvg.append("g")
         .attr("transform", "translate(" + treeMargin.left + "," + treeMargin.top + ")");
-      // Draw links as a continuous red line (no arrows)
       g.selectAll(".tree-link")
         .data(root.links())
         .enter().append("path")
@@ -565,11 +529,9 @@
         .attr("font-size", 12)
         .text(function(d) { return d.data.name; });
     }
-
-    // Initially render the full decision tree.
+    
     renderTree(fullTreeData, false);
-
-    // Update the death counter every minute; when deathCount becomes 1, render a random detailed pathway.
+    
     setInterval(function() {
       deathCount++;
       deathCountEl.text(deathCount);
